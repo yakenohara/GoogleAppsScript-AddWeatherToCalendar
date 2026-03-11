@@ -26,7 +26,8 @@ function addWeatherToCalendar() {
     for(var int_idxOfList = 0 ; int_idxOfList < obj_forecastData.list.length ; int_idxOfList++){
         var obj_itemOfList = obj_forecastData.list[int_idxOfList]; // 時間毎予報データ
 
-        var date_forecastTime = new Date(obj_itemOfList.dt * 1000); //todo UTC -> 地域時刻修正 //todo 3月なのに2月になってしまう
+        
+        var date_forecastTime = new Date((obj_itemOfList.dt + obj_forecastData.city.timezone) * 1000); //todo UTC -> 地域時刻修正 //todo このスクリプトを実行した環境のタイムゾーンが適用される
         var str_dateStringToday = `${date_forecastTime.getFullYear()}-${date_forecastTime.getMonth()}-${date_forecastTime.getDate()}`; // 日付のみを表す文字列
 
         if(!(str_dateStringToday in obj_dailyForecast)){ // 処理中の日付が日毎予報データに存在しない場合
@@ -69,8 +70,8 @@ function addWeatherToCalendar() {
 
         // カレンダーにイベント登録
         const strarr_datetmp = str_key.split('-');
-        const date_forecastDay = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2])); // 00:00 を表す Date を作成 //todo 日本標準時になるのはなぜ
-        const date_forecastDay_next = new Date(date_forecastDay.getFullYear(), date_forecastDay.getMonth(), (date_forecastDay.getDate() + 1));
+        const date_forecastDay = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2])); // 00:00 を表す Date を作成 //todo このスクリプトを実行した環境のタイムゾーンが適用される
+        const date_forecastDay_next = new Date(date_forecastDay.getFullYear(), date_forecastDay.getMonth(), (date_forecastDay.getDate() + 1)); // 次の日の 00:00 を表す Date を作成
 
         // 既存のイベント検索
         // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#getEvents(Date,Date)
