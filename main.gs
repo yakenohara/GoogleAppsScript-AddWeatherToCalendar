@@ -27,7 +27,7 @@ function addWeatherToCalendar() {
         var obj_itemOfList = obj_forecastData.list[int_idxOfList]; // 時間毎予報データ
 
         
-        var date_forecastTime = new Date((obj_itemOfList.dt + obj_forecastData.city.timezone) * 1000); //todo UTC -> 地域時刻修正 //todo このスクリプトを実行した環境のタイムゾーンが適用される
+        var date_forecastTime = new Date((obj_itemOfList.dt) * 1000); //todo このスクリプトを実行した環境のタイムゾーンが適用される
         var str_dateStringToday = `${date_forecastTime.getFullYear()}-${date_forecastTime.getMonth()}-${date_forecastTime.getDate()}`; // 日付のみを表す文字列
 
         if(!(str_dateStringToday in obj_dailyForecast)){ // 処理中の日付が日毎予報データに存在しない場合
