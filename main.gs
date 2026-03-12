@@ -53,11 +53,22 @@ function addWeatherToCalendar() {
     }
 
     // 日毎の天気を算出
-    Object.entries(obj_dailyForecast).forEach(([str_key, obj_value]) => {
+    Object.entries(obj_dailyForecast).forEach(([str_key_day, obj_value_dailyForecast]) => {
 
-        //todo その日を代表する天気を算出
-        obj_value.weather.main = obj_value.list_dtsorted[0].weather[0].main;
-        obj_value.weather.id = obj_value.list_dtsorted[0].weather[0].id;
+        //【暫定処理】 その日の 11:00 を表す日時 を過ぎた予報の 0 番目の weather を採用する
+        const strarr_datetmp = str_key_day.split('-');
+        const date_1100 = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2]), 11); // その日の 11:00 を表す日時
+        const int_utcSec1100 = parseInt(date_1100.getTime() / 1000); // UTC 秒
+        var int_idxOflist_whenOver1100 = 0;
+        for(int_idxOflist_whenOver1100 = 0 ; int_idxOflist_whenOver1100 < (obj_value_dailyForecast.list_dtsorted.length - 1) ; int_idxOflist_whenOver1100++){ // 最後の要素の直前まで走査
+            if(int_utcSec1100 < obj_value_dailyForecast.list_dtsorted[int_idxOflist_whenOver1100].dt){ // 11:00 を超えたとき
+                break;
+            }
+        }
+        Object.entries(obj_value_dailyForecast.weather).forEach(([str_key_weather, obj_value_weather]) => {
+            obj_value_dailyForecast.weather[str_key_weather] = obj_value_dailyForecast.list_dtsorted[int_idxOflist_whenOver1100].weather[0][str_key_weather];
+        });
+
     });
 
 
