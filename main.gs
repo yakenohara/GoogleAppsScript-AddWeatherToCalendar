@@ -26,9 +26,8 @@ function addWeatherToCalendar() {
     for(var int_idxOfList = 0 ; int_idxOfList < obj_forecastData.list.length ; int_idxOfList++){
         var obj_itemOfList = obj_forecastData.list[int_idxOfList]; // 時間毎予報データ
 
-        
-        var date_forecastTime = new Date((obj_itemOfList.dt) * 1000); //todo このスクリプトを実行した環境のタイムゾーンが適用される
-        var str_dateStringToday = `${date_forecastTime.getFullYear()}-${date_forecastTime.getMonth()}-${date_forecastTime.getDate()}`; // 日付のみを表す文字列
+        var date_forecastTime = new Date((obj_itemOfList.dt) * 1000);
+        var str_dateStringToday = `${date_forecastTime.getFullYear()}-${date_forecastTime.getMonth()}-${date_forecastTime.getDate()}`; // 日付のみを表す文字列 //todo 実行環境のタイムゾーンで強制されている
 
         if(!(str_dateStringToday in obj_dailyForecast)){ // 処理中の日付が日毎予報データに存在しない場合
             obj_dailyForecast[str_dateStringToday] = {
@@ -57,7 +56,7 @@ function addWeatherToCalendar() {
 
         //【暫定処理】 その日の 11:00 を表す日時 を過ぎた予報の 0 番目の weather を採用する
         const strarr_datetmp = str_key_day.split('-');
-        const date_1100 = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2]), 11); // その日の 11:00 を表す日時
+        const date_1100 = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2]), 11); // その日の 11:00 を表す日時 //todo 実行環境のタイムゾーンで強制されている
         const int_utcSec1100 = parseInt(date_1100.getTime() / 1000); // UTC 秒
         var int_idxOflist_whenOver1100 = 0;
         for(int_idxOflist_whenOver1100 = 0 ; int_idxOflist_whenOver1100 < (obj_value_dailyForecast.list_dtsorted.length - 1) ; int_idxOflist_whenOver1100++){ // 最後の要素の直前まで走査
@@ -81,8 +80,8 @@ function addWeatherToCalendar() {
 
         // カレンダーにイベント登録
         const strarr_datetmp = str_key.split('-');
-        const date_forecastDay = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2])); // 00:00 を表す Date を作成 //todo このスクリプトを実行した環境のタイムゾーンが適用される
-        const date_forecastDay_next = new Date(date_forecastDay.getFullYear(), date_forecastDay.getMonth(), (date_forecastDay.getDate() + 1)); // 次の日の 00:00 を表す Date を作成
+        const date_forecastDay = new Date(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2])); // 00:00 を表す Date を作成 //todo 実行環境のタイムゾーンで強制されている
+        const date_forecastDay_next = new Date(date_forecastDay.getFullYear(), date_forecastDay.getMonth(), (date_forecastDay.getDate() + 1)); // 次の日の 00:00 を表す Date を作成 //todo 実行環境のタイムゾーンで強制されている
 
         // 既存のイベント検索
         // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#getEvents(Date,Date)
