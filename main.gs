@@ -31,6 +31,17 @@ function addWeatherToCalendar() {
 
         if(!(str_dateStringToday in obj_dailyForecast)){ // 処理中の日付が日毎予報データに存在しない場合
             obj_dailyForecast[str_dateStringToday] = {
+                'main': { // `list.main` を日単位にまとめた情報
+                    'temp': undefined,
+                    'feels_like': undefined,
+                    'temp_min': undefined,
+                    'temp_max': undefined,
+                    'pressure': undefined,
+                    'sea_level': undefined,
+                    'grnd_level': undefined,
+                    'humidity': undefined,
+                    'temp_kf': undefined,
+                },
                 'weather': { // `list.weather` を日単位にまとめた情報
                     'id': undefined,
                     'main': undefined,
@@ -55,6 +66,7 @@ function addWeatherToCalendar() {
     Object.entries(obj_dailyForecast).forEach(([str_key_day, obj_value_dailyForecast]) => {
 
         //【暫定処理】 その日の 11:00 を表す日時 を過ぎた予報の 0 番目の weather を採用する
+        //todo 11:00 を大幅に過ぎた時間の予測データしか存在しない場合の考慮
         const strarr_datetmp = str_key_day.split('-');
         const int_utcSec1100 = (parseInt(Date.UTC(parseInt(strarr_datetmp[0]), parseInt(strarr_datetmp[1]), parseInt(strarr_datetmp[2]), 11) / 1000) - obj_forecastData.city.timezone); // UTC 秒
         var int_idxOflist_whenOver1100 = 0;
@@ -67,15 +79,30 @@ function addWeatherToCalendar() {
             obj_value_dailyForecast.weather[str_key_weather] = obj_value_dailyForecast.list_dtsorted[int_idxOflist_whenOver1100].weather[0][str_key_weather];
         });
 
+        //【暫定処理】 その日最高・最低気温を求める
+        //todo
+        // 当日の過去 (早朝・午前中等) の予測データが openweathermap から返されない -> 最低・気温算出が狂う
+        var dbl_temp_min_day = Infinity;
+        var dbl_temp_max_day = -Infinity;
+        for(var int_idxOfList = 0 ; int_idxOfList < (obj_value_dailyForecast.list_dtsorted.length) ; int_idxOfList++){ // 最高・最低気温抽出
+            var obj_elemOfList = obj_value_dailyForecast.list_dtsorted[int_idxOfList];
+            if(obj_elemOfList.main.temp_min < dbl_temp_min_day){ // 最低気温
+                dbl_temp_min_day = obj_elemOfList.main.temp_min;
+            }
+            if(dbl_temp_max_day < obj_elemOfList.main.temp_max){ // 最高気温
+                dbl_temp_max_day = obj_elemOfList.main.temp_max;
+            }
+        }
+        obj_value_dailyForecast.main.temp_min = dbl_temp_min_day;
+        obj_value_dailyForecast.main.temp_max = dbl_temp_max_day;
+
     });
 
 
     // 日毎予報データをカレンダーに登録
     Object.entries(obj_dailyForecast).forEach(([str_key, obj_value]) => {
 
-        const str_title =
-            "" + getEmojiFromWeatherId(obj_value.weather.id)
-        ;
+        const str_title = `${getEmojiFromWeatherId(obj_value.weather.id)} ${obj_value.main.temp_min.toFixed(1)}～${obj_value.main.temp_max.toFixed(1)} ℃`; //todo セルシウス表示固定
 
         // カレンダーにイベント登録
         const strarr_datetmp = str_key.split('-');
