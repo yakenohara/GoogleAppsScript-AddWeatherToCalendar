@@ -1,3 +1,6 @@
+//
+// 天気予報をカレンダーイベントとして追加する
+// openweathermap から天気予報を取得して、日毎に天気予報を求め、カレンダーイベントとして追加する
 function addWeatherToCalendar() {
 
     // 「Built-in API request by city name」 によるリクエスト url を作成
@@ -102,7 +105,11 @@ function addWeatherToCalendar() {
     // 日毎予報データをカレンダーに登録
     Object.entries(obj_dailyForecast).forEach(([str_key, obj_value]) => {
 
-        const str_title = `${getEmojiFromWeatherId(obj_value.weather.id)} ${obj_value.main.temp_min.toFixed(1)}～${obj_value.main.temp_max.toFixed(1)} ℃`; //todo セルシウス表示固定
+        //todo 過去のカレンダーイベントの天気は 21:00 の天気予報データが記録される
+        //      -> その日の 21:00 の予報としては正しいが、過去の天気予報データとしては不適当
+        
+        //todo 最高・最低気温を天気予報データからしか求めていない
+        //      -> その日の過去の予想データを参照してトータルで求めるべき
 
         // カレンダーにイベント登録
         const strarr_datetmp = str_key.split('-');
@@ -113,6 +120,9 @@ function addWeatherToCalendar() {
         // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#getEvents(Date,Date)
         const CalendarEventarr_events = calendar.getEvents(date_forecastDay, date_forecastDay_next);
 
+        // 保存先 CalendarEvent オブジェクト
+        var CalendarEvent_toSaveEvent;
+
         if(0 < CalendarEventarr_events.length){ // 既存のイベントが存在する場合 //todo 暫定処理。1日1イベントのみ扱うカレンダーを想定
             // 複数イベントと扱う場合は、以下のように検索
             // for (var i = 0; i < CalendarEventarr_events.length; i++) {
@@ -121,11 +131,26 @@ function addWeatherToCalendar() {
             //         break;
             //     }
             // }
-            CalendarEventarr_events[0].setTitle(str_title);
+            CalendarEvent_toSaveEvent = CalendarEventarr_events[0];
 
         }else{ // 既存のイベントが存在しない場合
-            calendar.createAllDayEvent(str_title, date_forecastDay, date_forecastDay_next);
+            // 新しいイベントを作成
+            // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#createAllDayEvent(String,Date)
+            CalendarEvent_toSaveEvent = calendar.createAllDayEvent('', date_forecastDay); //Note: 1st argment (title) は null を指定するとエラーになる
         }
+
+        // タイトルの設定
+        const str_title = `${getEmojiFromWeatherId(obj_value.weather.id)} ${obj_value.main.temp_min.toFixed(1)}～${obj_value.main.temp_max.toFixed(1)} ℃`; //todo セルシウス表示固定
+        CalendarEvent_toSaveEvent.setTitle(str_title);
+
+        // 天気予報データを JSON String でカレンダーイベントの description に保存
+        // Note: `setTag()` で記録できるのは 800 Bite 程度
+        // ( `JSON.stringify()` する前提で考えると、せいぜい `list` 内要素 1 つ分程度(経験則))
+        // `setDescription()` では 10KB レベルで保存可能なよう (経験則) なので、こちらを使う
+        // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#setDescription(String)
+        CalendarEvent_toSaveEvent.setDescription(JSON.stringify(obj_value, null, '    '));
+
+
 
     });
 }
