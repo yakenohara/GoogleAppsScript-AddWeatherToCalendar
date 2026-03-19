@@ -1,6 +1,7 @@
 //
 // 天気予報をカレンダーイベントとして追加する
 // openweathermap から天気予報を取得して、日毎に天気予報を求め、カレンダーイベントとして追加する
+//
 function addWeatherToCalendar() {
 
     // 「Built-in API request by city name」 によるリクエスト url を作成
@@ -132,6 +133,23 @@ function addWeatherToCalendar() {
             //     }
             // }
             CalendarEvent_toSaveEvent = CalendarEventarr_events[0];
+
+            // 前回の実行で天気予報データを JSON String で保存していた場合は取得
+            // Note: `setDescription()` していないカレンダーイベントの場合は '' (空文字列) が返るのでエラーになる
+            // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#getDescription()
+            const obj_description_old = JSON.parse(CalendarEvent_toSaveEvent.getDescription()); //todo 形式をチェックして問題なければ取り込む方式にする
+
+            // 今回の実行で得た直近の天気予報データ (3時間分) より過去に対する天気予報データ (3時間分) がいくつあるのかを求める
+            var int_idxOfList_sliceEnd = 0;
+            for(int_idxOfList_sliceEnd = 0 ; int_idxOfList_sliceEnd < obj_description_old.list_dtsorted.length ; int_idxOfList_sliceEnd++){
+                if(obj_value.list_dtsorted[0].dt <= obj_description_old.list_dtsorted[int_idxOfList_sliceEnd].dt){ // 今回の実行で得た直近の天気予報データ (3時間分) の対象時間 (UTC Sec) <= 前回の実行で保存した天気予報データの UTC Sec
+                    break;
+                }
+            }
+            // 今回の実行で得た天気予報データと過去に対する天気予報データの `list` を結合
+            if(0 < int_idxOfList_sliceEnd){
+                obj_value.list_dtsorted = obj_description_old.slice(0, int_idxOfList_sliceEnd).concat(obj_value.list_dtsorted);
+            }
 
         }else{ // 既存のイベントが存在しない場合
             // 新しいイベントを作成

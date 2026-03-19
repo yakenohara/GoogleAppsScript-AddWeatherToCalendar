@@ -1,6 +1,7 @@
 //
 // 登録済みのカレンダーのイベントを削除する (デバッグ用)
 // openweathermap.org の API が返す期間分のカレンダーイベントを削除する
+//
 function clearEventsFromCalendar() {
 
     // 「Built-in API request by city name」 によるリクエスト url を作成
