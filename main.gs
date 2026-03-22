@@ -137,18 +137,18 @@ function addWeatherToCalendar() {
             // 前回の実行で天気予報データを JSON String で保存していた場合は取得
             // Note: `setDescription()` していないカレンダーイベントの場合は '' (空文字列) が返るのでエラーになる
             // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#getDescription()
-            const obj_description_old = JSON.parse(CalendarEvent_toSaveEvent.getDescription()); //todo 形式をチェックして問題なければ取り込む方式にする
+            const obj_list_dtsorted_old = JSON.parse(CalendarEvent_toSaveEvent.getDescription()); //todo 形式をチェックして問題なければ取り込む方式にする
 
             // 今回の実行で得た直近の天気予報データ (3時間分) より過去に対する天気予報データ (3時間分) がいくつあるのかを求める
             var int_idxOfList_sliceEnd = 0;
-            for(int_idxOfList_sliceEnd = 0 ; int_idxOfList_sliceEnd < obj_description_old.list_dtsorted.length ; int_idxOfList_sliceEnd++){
-                if(obj_value.list_dtsorted[0].dt <= obj_description_old.list_dtsorted[int_idxOfList_sliceEnd].dt){ // 今回の実行で得た直近の天気予報データ (3時間分) の対象時間 (UTC Sec) <= 前回の実行で保存した天気予報データの UTC Sec
+            for(int_idxOfList_sliceEnd = 0 ; int_idxOfList_sliceEnd < obj_list_dtsorted_old.length ; int_idxOfList_sliceEnd++){
+                if(obj_value.list_dtsorted[0].dt <= obj_list_dtsorted_old[int_idxOfList_sliceEnd].dt){ // 今回の実行で得た直近の天気予報データ (3時間分) の対象時間 (UTC Sec) <= 前回の実行で保存した天気予報データの UTC Sec
                     break;
                 }
             }
             // 今回の実行で得た天気予報データと過去に対する天気予報データの `list` を結合
             if(0 < int_idxOfList_sliceEnd){
-                obj_value.list_dtsorted = obj_description_old.slice(0, int_idxOfList_sliceEnd).concat(obj_value.list_dtsorted);
+                obj_value.list_dtsorted = obj_list_dtsorted_old.slice(0, int_idxOfList_sliceEnd).concat(obj_value.list_dtsorted);
             }
 
         }else{ // 既存のイベントが存在しない場合
@@ -161,12 +161,13 @@ function addWeatherToCalendar() {
         const str_title = `${getEmojiFromWeatherId(obj_value.weather.id)} ${obj_value.main.temp_min.toFixed(1)}～${obj_value.main.temp_max.toFixed(1)} ℃`; //todo セルシウス表示固定
         CalendarEvent_toSaveEvent.setTitle(str_title);
 
-        // 天気予報データを JSON String でカレンダーイベントの description に保存
-        // Note: `setTag()` で記録できるのは 800 Bite 程度
-        // ( `JSON.stringify()` する前提で考えると、せいぜい `list` 内要素 1 つ分程度(経験則))
-        // `setDescription()` では 10KB レベルで保存可能なよう (経験則) なので、こちらを使う
+        // 天気予報データを JSON String でカレンダーイベントの description に保存  
+        // Note: `setTag()` で記録できるのは 800 Bite 程度  
+        // ( `JSON.stringify()` する前提で考えると、せいぜい `list` 内要素 1 つ分程度(経験則))  
+        // `setDescription()` の方が多く保存可能なよう (経験則) なので、こちらを使う  
+        // `obj_value` 丸ごとだと容量オーバーらしく、自動でデータが切り捨てられるため、`obj_value.list_dtsorted` のみ保存  
         // https://developers.google.com/apps-script/reference/calendar/calendar?hl=ja#setDescription(String)
-        CalendarEvent_toSaveEvent.setDescription(JSON.stringify(obj_value, null, '    '));
+        CalendarEvent_toSaveEvent.setDescription(JSON.stringify(obj_value.list_dtsorted, null, '    '));
 
 
 
