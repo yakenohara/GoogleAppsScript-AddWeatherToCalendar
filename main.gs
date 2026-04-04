@@ -167,7 +167,7 @@ function getEmojiFromWeatherId(int_weatherId){
 
     // Rain
     if (500 <= int_weatherId && int_weatherId < 600) {
-        return '☂';  // `🌧` だと見にくいので `☂` を返す
+        return '☂️';  // `🌧` だと見にくいので `☂️` (U+FE0E (テキスト) U+FE0F (絵文字指定)) を返す
     }
 
     // Snow
