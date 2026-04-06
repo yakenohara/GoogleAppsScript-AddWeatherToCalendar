@@ -155,42 +155,45 @@ function addWeatherToCalendar() {
 // https://openweathermap.org/weather-conditions
 function getEmojiFromWeatherId(int_weatherId){
 
+    //Note:
+    // `️` (U+FE0F) は絵文字指定コード
+
     // Thunderstorm (雷雨)
     if (200 <= int_weatherId && int_weatherId < 300) {
-        return '⛈';
+        return '⛈️';
     }
 
     // Drizzle (霧雨)
     if (300 <= int_weatherId && int_weatherId < 400) {
-        return '🌦';
+        return '🌦️';
     }
 
     // Rain
     if (500 <= int_weatherId && int_weatherId < 600) {
-        return '☂️';  // `🌧` だと見にくいので `☂️` (U+FE0E (テキスト) U+FE0F (絵文字指定)) を返す
+        return '☂️';  // `🌧` だと見にくいので `☂` を返す
     }
 
     // Snow
     if (600 <= int_weatherId && int_weatherId < 700) {
-        return '❄';
+        return '❄️';
     }
 
     // Mist / Fog etc -> 霧
     if (700 <= int_weatherId && int_weatherId < 800) {
-        return '🌫';
+        return '🌫️';
     }
 
     // Clear
     if (int_weatherId === 800) {
-        return '🔆'; // `☀` だと見にくいので `🔆` を返す
+        return '☀️';
     }
 
     // Clouds
     if (800 < int_weatherId && int_weatherId < 900) {
-        return '☁';
+        return '☁️';
     }
 
-    return '🌡';
+    return '🌡️';
 }
 
 //
