@@ -30,16 +30,36 @@ function addWeatherToCalendar() {
     for(var int_idxOfList = 0 ; int_idxOfList < obj_forecastData.list.length ; int_idxOfList++){
         var obj_itemOfList = obj_forecastData.list[int_idxOfList]; // 時間毎予報データ
 
-        var date_forecastTime = new Date((obj_itemOfList.dt + obj_forecastData.city.timezone) * 1000); // タイムゾーンと UTC 時刻差分を考慮した Date -> getUTC~() でタイムゾーンを考慮した日時を取得する目的
+        // obj_itemOfList の中身を必要な情報のみに絞る
+        obj_itemOfList_toAdd = { // 必要情報定義
+            'dt': undefined,
+            'main': {
+                'temp': undefined,
+                'temp_min': undefined,
+                'temp_max': undefined,
+            },
+            'weather': [
+                {
+                    'id': undefined,
+                    'main': undefined,
+                    'description': undefined,
+                    'icon': undefined,
+                }
+            ],
+            'pop': undefined,
+        }
+        var obj_itemOfList_stlip = deepClone(obj_itemOfList, obj_itemOfList_toAdd);
+
+        var date_forecastTime = new Date((obj_itemOfList_stlip.dt + obj_forecastData.city.timezone) * 1000); // タイムゾーンと UTC 時刻差分を考慮した Date -> getUTC~() でタイムゾーンを考慮した日時を取得する目的
         var str_dateString_today = `${date_forecastTime.getUTCFullYear()}-${date_forecastTime.getUTCMonth()}-${date_forecastTime.getUTCDate()}`; // 日付のみを表す文字列
 
-        addDailyForecast(str_dateString_today, obj_itemOfList); // `obj_dailyForecast` に追加
+        addDailyForecast(str_dateString_today, obj_itemOfList_stlip); // `obj_dailyForecast` に追加
 
         // 00:00:00 の予報データは前日の予報データとしても扱う
         if (date_forecastTime.getUTCHours() === 0 && date_forecastTime.getUTCMinutes() === 0 && date_forecastTime.getUTCSeconds() === 0){ // 00:00:00 の場合
             var date_forecastTime_yesterday = new Date(date_forecastTime.getTime() - (3600 * 24 * 1000));
             var str_dateString_yesterday = `${date_forecastTime_yesterday.getUTCFullYear()}-${date_forecastTime_yesterday.getUTCMonth()}-${date_forecastTime_yesterday.getUTCDate()}`; // 日付のみを表す文字列(昨日)
-            addDailyForecast(str_dateString_yesterday, obj_itemOfList); // `obj_dailyForecast` に追加
+            addDailyForecast(str_dateString_yesterday, obj_itemOfList_stlip); // `obj_dailyForecast` に追加
         }
 
     }
@@ -234,4 +254,41 @@ function calcDailyForecast(str_key_day, obj_value_dailyForecast, int_timezone_ut
 
     return;
 
+}
+
+//
+// dictionary のクローンを作成する
+// クローン先
+//
+function deepClone(obj_from, obj_ref) {
+    
+    if (obj_from === null || typeof obj_from !== "object") { // プリミティブ型の場合
+        return obj_from;
+    }
+
+    if (Array.isArray(obj_from)) { // Arrayの場合
+        const arr_result = [];
+        for (const obj_item of obj_from) {
+            arr_result.push(deepClone(obj_item, obj_ref[0]));
+        }
+        return arr_result;
+    }
+
+    // Object (Dictionary) の場合
+    var obj_result = undefined; // 返すものがない場合の返却値
+    for (const key in obj_from) {
+        if (
+            (Object.prototype.hasOwnProperty.call(obj_from, key)) && // コピー元のプロパティとして存在するかつ
+            (Object.prototype.hasOwnProperty.call(obj_ref, key))     // 参照用ディクショナリのプロパティとしても存在する
+        ) { // -> コピーするべきプロパティの場合
+            let tmp = deepClone(obj_from[key], obj_ref[key]); // プロパティに対する再帰的コピー
+            if (tmp !== undefined){ // 返すべきプロパティが存在する場合
+                if(obj_result === undefined){ // 返すものがない場合の返却値のままであった場合
+                    obj_result = {};
+                }
+                obj_result[key] = tmp;
+            }
+        }
+    }
+    return obj_result;
 }
